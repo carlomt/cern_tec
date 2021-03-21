@@ -2,9 +2,11 @@
 #include <iostream>
 #include <cmath>
 #include <stdexcept>
-	
+
+#ifndef __WITHOUT_ROOT__
 #include "TCanvas.h"
 #include "TH1F.h"
+#endif
 
 #include "LinCong.hh"
 #include "King.hh"
@@ -39,7 +41,9 @@ int main(int argc, char *argv[])
 
   //the histogram is allocated dynamically because of root garbage collection
   //but it is a unique pointer to save memory and avoid memory leaks
+#ifndef __WITHOUT_ROOT__  
   auto h = std::make_unique<TH1F>("h","h",1000,0.,n_steps);
+#endif
   float nstep_to_success = 0;
   float nstep_to_success2 = 0;
   size_t nsuccess = 0;
@@ -80,7 +84,9 @@ int main(int argc, char *argv[])
 		    {
 		      min_number_of_steps_thisrun = nstep_to_success_thisrun;
 		    }
-		  h->Fill(step);	      
+#ifndef __WITHOUT_ROOT__		  
+		  h->Fill(step);
+#endif
 		  break;
 		}
 	    }//end loop on steps
@@ -127,11 +133,13 @@ int main(int argc, char *argv[])
     cout<<"  n failed:             "<< n_failed <<" +/- "<< err_n_failed << endl;    
     cout<<"#######################################################\n";
 
+#ifndef __WITHOUT_ROOT__    
     auto cc = std::make_unique<TCanvas>("cc","cc");
     cc->SetLogy();
     h->Draw();
     cc->SaveAs("h.pdf");
     cc->SaveAs("h.C");
-
+#endif
+    
     return 0;
 }

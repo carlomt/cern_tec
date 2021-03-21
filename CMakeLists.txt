@@ -24,15 +24,22 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 # Setup ROOT include directories and compile definitions
 #
 find_package(ROOT)
-include_directories(${ROOT_INCLUDE_DIRS})
+if(NOT ROOT_FOUND OR WITHOUT_ROOT)
+  message(WARNING "ROOT not found or disabled by hand")
+  add_definitions(-D__WITHOUT_ROOT__)
+else()
+  message(STATUS "ROOT found in ${ROOT_INCLUDE_DIRS}")
+  include_directories(${ROOT_INCLUDE_DIRS})
+endif()
 
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
 # add_executable(loop.x loop.cpp ${sources} ${headers})
 add_executable(main.x main.cpp ${sources} ${headers})
-target_link_libraries(main.x ${ROOT_LIBRARIES})
-
+if(ROOT_FOUND)
+  target_link_libraries(main.x ${ROOT_LIBRARIES})
+endif()
 
 #----------------------------------------------------------------------------
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
