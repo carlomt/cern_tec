@@ -4,8 +4,8 @@
 King::King(std::shared_ptr<LinCong> gen,
 	   const float weight_up,
 	   const float weight_down,
-	   const float weight_right,
 	   const float weight_left,
+	   const float weight_right,
 	   const unsigned int board_size) :
   fGen(gen), 
   fOrizontalPosition(5),
@@ -34,6 +34,7 @@ void King::Step()
 	  if(fVerticalPosition<fBoardSize)
 	    {
 	      fVerticalPosition++;
+	      SavePosition();	      
 	      return;
 	    }
 	}
@@ -42,6 +43,7 @@ void King::Step()
 	  if(fOrizontalPosition<fBoardSize)
 	    {
 	      fOrizontalPosition++;
+	      SavePosition();	      
 	      return;
 	    }
 	}
@@ -50,6 +52,7 @@ void King::Step()
 	  if(fVerticalPosition>1)
 	    {
 	      fVerticalPosition--;
+	      SavePosition();
 	      return;
 	    }
 	}
@@ -58,6 +61,7 @@ void King::Step()
 	  if(fOrizontalPosition>1)
 	    {
 	      fOrizontalPosition--;
+	      SavePosition();
 	      return;
 	    }
 	}
@@ -101,7 +105,14 @@ void King::StepWithPeriodicBoundary()
 	  fOrizontalPosition = fBoardSize;
 	}
     }
+  SavePosition();
   return;
+}
+
+void King::SavePosition()
+{
+  fOrizontalPositions.push_back(fOrizontalPosition);
+  fVerticalPositions.push_back(fVerticalPosition);
 }
 
 std::ostream &operator<<(std::ostream &os, const King &o)

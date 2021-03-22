@@ -18,14 +18,20 @@ using std::cerr;
 int main(int argc, char *argv[])
 {
   int seed = 1234;
-  const size_t n_steps = 1e+6;
-  const size_t n_events = 100000;
+  // const size_t n_steps = 1e+6;
+  const size_t n_max_steps = 250;
+  const size_t n_events = 1000;
+  const float weight_up=5.;
+  const float weight_down=1.;
+  const float weight_left=3.;
+  const float weight_right=2.;
   const float tau = 10./std::log(2.);
-  const bool decay = false;
+  const bool decay = true;
+  const bool periodic_boundary_condition = false;
+  const unsigned int chess_board_size = 8;
+  
   int n_run = 10;
   int n_events_per_run;
-
-  const unsigned int chess_board_size = 80;
 
   if(n_events%n_run)
     {
@@ -41,8 +47,9 @@ int main(int argc, char *argv[])
 
   //the histogram is allocated dynamically because of root garbage collection
   //but it is a unique pointer to save memory and avoid memory leaks
-#ifndef __WITHOUT_ROOT__  
-  auto h = std::make_unique<TH1F>("h","h",1000,0.,n_steps);
+#ifndef __WITHOUT_ROOT__
+  int nbin = 100;
+  auto h = std::make_unique<TH1F>("h", "h", nbin, 0., n_max_steps);
 #endif
   float nstep_to_success = 0;
   float nstep_to_success2 = 0;
@@ -53,7 +60,7 @@ int main(int argc, char *argv[])
   float min_number_of_steps2 = 0.;
   float n_failed = 0.;
   float n_failed2 = 0.;
-
+  
   cout<<"Starting to simulate"<<endl;
   //loop on the different runs
   for(size_t run=0; run<n_run; ++run)
@@ -61,28 +68,40 @@ int main(int argc, char *argv[])
       float nstep_to_success_thisrun = 0.;
       float nstep_to_success2_thisrun = 0.;
       size_t nsuccess_thisrun = 0;
-      size_t min_number_of_steps_thisrun = n_steps;
+      size_t min_number_of_steps_thisrun = n_max_steps;
+      size_t n_steps = n_max_steps;
       
       for(size_t event=0; event<n_events_per_run; ++event)
 	{
-	  King king(gen,1.,1.,1.,1.,chess_board_size);
-	  // king.SetPeriodicBoundariesCondition();
-	  float death_time = -tau*std::log(1. - gen->Get());
+	  King king(gen, weight_up, weight_down,
+		    weight_left, weight_right,
+		    chess_board_size);
+	  king.SetPeriodicBoundariesCondition(periodic_boundary_condition);
+
+	  if(decay)
+	    {
+	      // float t = -tau*std::log(1. - gen->Get());
+	      // n_steps = ((size_t) t);
+	      // cout<<"t "<<t<<endl;
+	      n_steps = (size_t) std::floor(-tau*std::log(1. - gen->Get()));
+	      // cout<<"p "<<p<<endl;
+	    }
 	  for(size_t step=0; step<n_steps; ++step)
 	    {
-	      if(decay && step>death_time)
-		break;
 	      king.Step();
 	      // cout<<step<<'\t'<<king<<endl;
-	      if(king.OrizontalPosition()==1 && king.VerticalPosition()==chess_board_size)
+	      if(king.OrizontalPosition()==1 && king.VerticalPosition()==8)
 		{
 		  // cout<<"event: "<<event<<" king at: "<<king<<" after "<<step<<" steps \n";
+		  step++;
 		  nstep_to_success_thisrun += step;
 		  nstep_to_success2_thisrun += step*step;
 		  nsuccess_thisrun++;
-		  if(nstep_to_success_thisrun<min_number_of_steps_thisrun)
+		  if( step < min_number_of_steps_thisrun )
 		    {
-		      min_number_of_steps_thisrun = nstep_to_success_thisrun;
+		      min_number_of_steps_thisrun = step;
+		      const auto& vp = king.VerticalPositions();
+		      const auto& op = king.OrizontalPositions();
 		    }
 #ifndef __WITHOUT_ROOT__		  
 		  h->Fill(step);
@@ -95,6 +114,10 @@ int main(int argc, char *argv[])
       nstep_to_success_thisrun /= nsuccess_thisrun;
       nstep_to_success2_thisrun /= nsuccess_thisrun;
 
+      const int n_failed_thisrun = (n_events_per_run - nsuccess_thisrun);
+      n_failed  += n_failed_thisrun;
+      n_failed2 += n_failed_thisrun*n_failed_thisrun;
+	
       float sigma_thisrun = std::sqrt(nstep_to_success2_thisrun -
 				      nstep_to_success_thisrun*nstep_to_success_thisrun);
       cout<<"Run "<<run<<"\n";
