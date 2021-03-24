@@ -19,17 +19,22 @@ int main(int argc, char *argv[])
 {
   int seed = 1234;
   // const size_t n_steps = 1e+6;
-  const size_t n_max_steps = 250;
-  const size_t n_events = 1000;
+  const size_t n_max_steps = 150;
+  const size_t n_events = 10000;
   const float weight_up=5.;
   const float weight_down=1.;
   const float weight_left=3.;
   const float weight_right=2.;
+  // const float weight_up=1.;
+  // const float weight_down=1.;
+  // const float weight_left=1.;
+  // const float weight_right=1.;  
   const float tau = 10./std::log(2.);
-  const bool decay = true;
+  const bool decay = false;
   const bool periodic_boundary_condition = false;
   const unsigned int chess_board_size = 8;
-  
+  const unsigned int vertical_winning_position = 8;
+    
   int n_run = 10;
   int n_events_per_run;
 
@@ -90,7 +95,7 @@ int main(int argc, char *argv[])
 	    {
 	      king.Step();
 	      // cout<<step<<'\t'<<king<<endl;
-	      if(king.OrizontalPosition()==1 && king.VerticalPosition()==8)
+	      if(king.OrizontalPosition()==1 && king.VerticalPosition()==vertical_winning_position)
 		{
 		  // cout<<"event: "<<event<<" king at: "<<king<<" after "<<step<<" steps \n";
 		  step++;
