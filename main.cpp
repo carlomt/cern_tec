@@ -18,7 +18,6 @@ using std::cerr;
 int main(int argc, char *argv[])
 {
   int seed = 1234;
-  // const size_t n_steps = 1e+6;
   const size_t n_max_steps = 150;
   const size_t n_events = 10000;
   const float weight_up=5.;
@@ -85,19 +84,13 @@ int main(int argc, char *argv[])
 
 	  if(decay)
 	    {
-	      // float t = -tau*std::log(1. - gen->Get());
-	      // n_steps = ((size_t) t);
-	      // cout<<"t "<<t<<endl;
 	      n_steps = (size_t) std::floor(-tau*std::log(1. - gen->Get()));
-	      // cout<<"p "<<p<<endl;
 	    }
 	  for(size_t step=0; step<n_steps; ++step)
 	    {
 	      king.Step();
-	      // cout<<step<<'\t'<<king<<endl;
 	      if(king.OrizontalPosition()==1 && king.VerticalPosition()==vertical_winning_position)
 		{
-		  // cout<<"event: "<<event<<" king at: "<<king<<" after "<<step<<" steps \n";
 		  step++;
 		  nstep_to_success_thisrun += step;
 		  nstep_to_success2_thisrun += step*step;
